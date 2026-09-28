@@ -13,6 +13,14 @@
 
 ---
 
+## 📂 Hafta 1: Görüntü İşleme Temelleri ve Boyutlandırma
+
+| Ödev Kodu | Konu | Çıktılar / Rapor | Bağlantı |
+| :---: | :--- | :--- | :---: |
+| **1.1** | **Klasördeki Resimleri 1024x768 Boyutuna Ölçekleme**<br>• Klasördeki resimlerin toplu taranması<br>• `cv2.INTER_AREA` ile yüksek kaliteli yeniden boyutlandırma | `cikti/`<br>`resize_cikti.txt` | [📂 İncele](Hafta_1/1.1/) |
+
+---
+
 ## 📂 Hafta 5: Renk Kanalları, Histogramlar ve Renk Uzayı Dönüşümleri
 
 | Ödev Kodu | Konu | Çıktılar / Rapor | Bağlantı |
