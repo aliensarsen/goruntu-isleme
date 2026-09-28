@@ -1,0 +1,4 @@
+Ödev 2.1 Nicemleme Raporu:
+Orijinal Gri Benzersiz Seviye Sayısı: 256 (Maksimum 256)
+6-Bit Nicemli Benzersiz Seviye Sayısı: 64 (Maksimum 64)
+Maksimum Piksel Kuantalama Hatası    : 3 seviye (Beklenen <= 3)

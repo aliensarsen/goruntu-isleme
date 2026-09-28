@@ -21,6 +21,18 @@
 
 ---
 
+## 📂 Hafta 2: Nicemleme, Threading ve Nokta Dönüşümleri
+
+| Ödev Kodu | Konu | Çıktılar / Rapor | Bağlantı |
+| :---: | :--- | :--- | :---: |
+| **2.1** | **8-bit → 6-bit Nicemleme**<br>• 256 seviyeden 64 seviyeye kuantalama<br>• Kuantalama hata fark görseli | `6bit.png`<br>`fark.png` | [📂 İncele](Hafta_2/2.1/) |
+| **2.2** | **4 Parça × 4 Thread Parlaklık İşlemleri**<br>• 4 bağımsız kadranda farklı dönüşümler<br>• 1 thread vs 4 thread süre kıyaslaması | `parca_sonuc.png`<br>`parca_thread_cikti.txt` | [📂 İncele](Hafta_2/2.2/) |
+| **2.3** | **Parça Histogramları ve Birleştirme**<br>• 4 parça histogramı toplayıp doğrulama (Fark = 0)<br>• Histogram çizim grafiği | `histogram.png`<br>`histogram_thread_cikti.txt` | [📂 İncele](Hafta_2/2.3/) |
+| **2.4** | **Histogram Süre Kıyaslaması (1 Thread vs. 4 Thread)**<br>• 20 tekrarlı süre ölçümü ve hızlanma analizi | `histogram_sure_cikti.txt` | [📂 İncele](Hafta_2/2.4/) |
+| **2.5** | **Parlaklık ve Kontrast Dönüşümü ($0.75 \cdot x + 20$)**<br>• Çarpma, toplama ve bileşik etkiler<br>• 2x2 karşılaştırma paneli | `karsilastirma.png`<br>`donusum.png` | [📂 İncele](Hafta_2/2.5/) |
+
+---
+
 ## 📂 Hafta 5: Renk Kanalları, Histogramlar ve Renk Uzayı Dönüşümleri
 
 | Ödev Kodu | Konu | Çıktılar / Rapor | Bağlantı |

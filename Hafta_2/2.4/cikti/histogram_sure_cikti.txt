@@ -1,0 +1,8 @@
+Ödev 2.4 Histogram Süre Kıyaslama Tablosu (20 Tekrar Ortalaması):
+--------------------------------------------------------------------
+  * 1 Thread (Doğrudan np.bincount) Süresi : 0.004002 saniye
+  * 4 Thread (Parça + Toplama) Süresi       : 0.002583 saniye
+  * Süre Farkı (4 Thread - 1 Thread)       : -0.001419 saniye
+--------------------------------------------------------------------
+Değerlendirme: NumPy C çekirdeğinde tek thread bincount zaten oldukça optimize ve hızlıdır.
+Thread başlatma maliyeti (overhead) ve parça birleştirme toplama süresi ölçülmüştür.

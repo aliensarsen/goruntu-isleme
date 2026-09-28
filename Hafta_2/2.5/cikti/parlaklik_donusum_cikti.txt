@@ -1,0 +1,8 @@
+Ödev 2.5 Doğrusal Parlaklık / Kontrast Dönüşümü Raporu:
+--------------------------------------------------------------------
+  * Orijinal Görüntü   : Ortalama = 135.30, [Min, Max] = [0, 255]
+  * 0.75 * x           : Ortalama = 101.19, [Min, Max] = [0, 191]
+  * x + 20             : Ortalama = 147.91, [Min, Max] = [20, 255]
+  * 0.75 * x + 20      : Ortalama = 121.19, [Min, Max] = [20, 211]
+--------------------------------------------------------------------
+Sonuç: 0.75 çarpanı kontrastı daraltmış, +20 sabiti ise tüm tonları yukarı ötelemiştir.

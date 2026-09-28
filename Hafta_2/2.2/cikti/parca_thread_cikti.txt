@@ -1,0 +1,5 @@
+Ödev 2.2 Dört Parça Paralel İşleme Raporu (20 Tekrar Ortalaması):
+  * 1 Thread (Sıralı İşlem) Süresi: 0.002532 saniye
+  * 4 Thread (Paralel İşlem) Süresi: 0.001194 saniye
+  * Hızlanma (Speedup): 2.12x
+  * Çıktı Görseli: parca_sonuc.png başarıyla oluşturuldu.

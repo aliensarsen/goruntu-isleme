@@ -1,0 +1,4 @@
+Ödev 2.3 Histogram Birleştirme Doğrulama Raporu:
+  * Toplam İşlenen Piksel Sayısı: 1,705,600 piksel
+  * Parça Histogramı Toplamı == Tüm Görüntü Histogramı: True (Fark = 0)
+  * Çıktı: cikti/histogram.png başarıyla kaydedildi.
