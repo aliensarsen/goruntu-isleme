@@ -1,0 +1,15 @@
+============================================================
+Ödev 3.5: 5x5 Medyan Filtresi ve PSNR Analizi Raporu
+============================================================
+
+Görsel: dag
+  * Tuz-Biber Gürültülü PSNR : 14.55 dB
+  * Özel Medyan Filtreli PSNR: 45.82 dB (Kazanç: +31.26 dB)
+  * OpenCV medianBlur PSNR   : 45.82 dB
+  * Özel vs. OpenCV Fark     : Maks Fark = 0, Toplam SAD = 0 (Tam Eşleşme: True)
+
+Görsel: sis
+  * Tuz-Biber Gürültülü PSNR : 14.66 dB
+  * Özel Medyan Filtreli PSNR: 36.12 dB (Kazanç: +21.46 dB)
+  * OpenCV medianBlur PSNR   : 36.12 dB
+  * Özel vs. OpenCV Fark     : Maks Fark = 0, Toplam SAD = 0 (Tam Eşleşme: True)

@@ -1,0 +1,11 @@
+Ödev 3.3: CLAHE Karşılaştırma Raporu
+------------------------------------------------------------
+Görsel: dag.jpg
+  * Orijinal Standart Sapma : 78.63
+  * CLAHE Standart Sapma    : 67.47
+  * OpenCV vs. Özel Maksimum Fark: 4 (Farklı piksel oranı: %40.40 - float enterpolasyon yuvarlaması)
+
+Görsel: sis.jpg
+  * Orijinal Standart Sapma : 37.28
+  * CLAHE Standart Sapma    : 45.95
+  * OpenCV vs. Özel Maksimum Fark: 5 (Farklı piksel oranı: %50.97 - float enterpolasyon yuvarlaması)

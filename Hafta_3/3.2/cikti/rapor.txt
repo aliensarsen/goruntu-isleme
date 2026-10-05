@@ -1,0 +1,11 @@
+Ödev 3.2: Histogram Eşitleme Raporu
+------------------------------------------------------------
+Görsel: dag.jpg
+  * Orijinal Standart Sapma : 78.63
+  * Eşitlenmiş Standart Sapma: 74.65
+  * Özel vs. OpenCV Farkı    : Maksimum Fark = 0, Toplam SAD = 0 (Tam Eşleşme: True)
+
+Görsel: sis.jpg
+  * Orijinal Standart Sapma : 37.28
+  * Eşitlenmiş Standart Sapma: 74.33
+  * Özel vs. OpenCV Farkı    : Maksimum Fark = 0, Toplam SAD = 0 (Tam Eşleşme: True)

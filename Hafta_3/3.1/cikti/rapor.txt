@@ -1,0 +1,11 @@
+Ödev 3.1: Min-Max Doğrusal Kontrast Germe Raporu
+------------------------------------------------------------
+Görsel: dag.jpg
+  * Orijinal Aralık : [0, 237]
+  * Gerilmiş Aralık : [0, 255]
+  * Özel vs. OpenCV : Maksimum Fark = 0, Toplam SAD = 0 (Tam Eşleşme: True)
+
+Görsel: sis.jpg
+  * Orijinal Aralık : [92, 249]
+  * Gerilmiş Aralık : [0, 255]
+  * Özel vs. OpenCV : Maksimum Fark = 0, Toplam SAD = 0 (Tam Eşleşme: True)

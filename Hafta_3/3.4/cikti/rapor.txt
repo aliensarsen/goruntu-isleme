@@ -1,0 +1,15 @@
+============================================================
+Ödev 3.4: 3x3 Ortalama Filtresi ve PSNR Analizi Raporu
+============================================================
+
+Görsel: dag
+  * Gürültülü Görüntü PSNR : 22.37 dB
+  * Özel Filtreli PSNR    : 31.70 dB (Kazanç: +9.33 dB)
+  * OpenCV Blur PSNR      : 31.70 dB
+  * Özel vs. OpenCV Fark  : Maks Fark = 0, Toplam SAD = 0 (Tam Eşleşme: True)
+
+Görsel: sis
+  * Gürültülü Görüntü PSNR : 22.56 dB
+  * Özel Filtreli PSNR    : 31.00 dB (Kazanç: +8.44 dB)
+  * OpenCV Blur PSNR      : 31.00 dB
+  * Özel vs. OpenCV Fark  : Maks Fark = 0, Toplam SAD = 0 (Tam Eşleşme: True)

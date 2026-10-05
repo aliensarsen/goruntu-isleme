@@ -33,6 +33,18 @@
 
 ---
 
+## 📂 Hafta 3: Kontrast Germe, Histogram Eşitleme, CLAHE ve Filtreler
+
+| Ödev Kodu | Konu | Çıktılar / Rapor | Bağlantı |
+| :---: | :--- | :--- | :---: |
+| **3.1** | **Min-Max Doğrusal Kontrast Germe**<br>• $[min, max] \rightarrow [0, 255]$ dinamik aralık genişletme<br>• Özel fonksiyon vs `cv2.normalize` (Fark = 0) | `cikti/`<br>`rapor.txt` | [📂 İncele](Hafta_3/3.1/) |
+| **3.2** | **Histogram Eşitleme (Histogram Equalization)**<br>• CDF ile kümülatif histogram eşitleme<br>• Özel CDF algoritması vs `cv2.equalizeHist` (Fark = 0) | `cikti/`<br>`rapor.txt` | [📂 İncele](Hafta_3/3.2/) |
+| **3.3** | **CLAHE (Kontrast Sınırlı Adaptif Histogram Eşitleme)**<br>• 8x8 karolar üzerinde yerel kontrast iyileştirme<br>• Kırpma sınırı ve çift doğrusal enterpolasyon | `cikti/`<br>`rapor.txt` | [📂 İncele](Hafta_3/3.3/) |
+| **3.4** | **3x3 Ortalama (Mean/Box) Filtresi**<br>• Gauss gürültüsünü 3x3 çekirdekle yumuşatma<br>• +9 dB PSNR artışı ve `cv2.blur` doğrulaması | `cikti/`<br>`rapor.txt` | [📂 İncele](Hafta_3/3.4/) |
+| **3.5** | **5x5 Medyan Filtresi**<br>• Tuz-biber gürültüsünü medyan sıralama ile giderme<br>• +31 dB PSNR artışı ve `cv2.medianBlur` doğrulaması | `cikti/`<br>`rapor.txt` | [📂 İncele](Hafta_3/3.5/) |
+
+---
+
 ## 📂 Hafta 5: Renk Kanalları, Histogramlar ve Renk Uzayı Dönüşümleri
 
 | Ödev Kodu | Konu | Çıktılar / Rapor | Bağlantı |
