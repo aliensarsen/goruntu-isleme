@@ -45,6 +45,20 @@
 
 ---
 
+## 📂 Hafta 4: Kenar Algoritmaları ve Gradyan Operatörleri
+
+| Ödev Kodu | Konu | Çıktılar / Rapor | Bağlantı |
+| :---: | :--- | :--- | :---: |
+| **4.1** | **Prewitt X Gradyan Operatörü**<br>• $5 \times 5$ Gauss yumuşatma ($\sigma=1.0$) ve Prewitt X çekirdeği<br>• Yatay türev ile düşey kenarların çıkarılması | `kamera_prewitt_gx.png`<br>`panel_prewitt_x.png` | [📂 İncele](Hafta_4/4.1/) |
+| **4.2** | **Prewitt Y Gradyan Operatörü**<br>• Prewitt Y çekirdeği ile düşey türev hesabı<br>• Yatay kenarların vurgulanması | `kamera_prewitt_gy.png`<br>`panel_prewitt_y.png` | [📂 İncele](Hafta_4/4.2/) |
+| **4.3** | **3x3 Sobel Operatörü ve Gradyan Büyüklüğü**<br>• Sobel $G_x, G_y$, büyüklük ($|\nabla I|$) ve %20 dinamik eşik<br>• 2x3 kapsamlı analiz paneli | `kamera_sobel_hypot.png`<br>`panel_sobel.png` | [📂 İncele](Hafta_4/4.3/) |
+| **4.4** | **Prewitt ve Sobel Karşılaştırmalı Analizi**<br>• İki gradyan yönteminin büyüklük ve ikili kenar kıyası<br>• %97.90 benzerlik (IoU) ve fark analizi | `karsilastirma_prewitt_sobel.png`<br>`rapor.txt` | [📂 İncele](Hafta_4/4.4/) |
+| **4.5** | **3x3 Laplacian 2. Mertebe Kenar Tespiti**<br>• Yön bağımsız (izotropik) Laplacian operatörü<br>• 8-komşuluklu sıfır geçişi (zero-crossing) ve gürültü analizi | `kamera_laplacian_gauss_ikili.png`<br>`panel_laplacian.png` | [📂 İncele](Hafta_4/4.5/) |
+| **4.6** | **7x7 Analitik LoG (Laplacian of Gaussian)**<br>• $\sigma=1.0$ formülünden $7 \times 7$ analitik çekirdek üretimi<br>• Sıfır toplam ve mutlak normalizasyon ile sıfır geçişi | `kamera_log_ikili.png`<br>`panel_log.png` | [📂 İncele](Hafta_4/4.6/) |
+| **4.7** | **OpenCV Canny ve Kapsamlı Başarım Analizi**<br>• Çok aşamalı Canny (NMS + histerezis 50/100)<br>• 9 varyant × 3 görüntü benchmark: Süre (ms) ve F1 skoru | `olcumler.csv`<br>`karsilastirma_tum_yontemler.png` | [📂 İncele](Hafta_4/4.7/) |
+
+---
+
 ## 📂 Hafta 5: Renk Kanalları, Histogramlar ve Renk Uzayı Dönüşümleri
 
 | Ödev Kodu | Konu | Çıktılar / Rapor | Bağlantı |

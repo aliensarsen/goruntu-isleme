@@ -1,0 +1,10 @@
+============================================================
+Ödev 4.6: 7x7 Analitik LoG Kenar Tespiti Raporu
+============================================================
+
+Çekirdek Boyutu       : 7x7 (sigma=1.0)
+Çekirdek Ortalaması   : -3.979503e-11 (~0)
+Çekirdek Mutlak Toplam: 1.0000 (1.0000)
+Merkez Eleman Değeri  : -0.2261 (Negatif tepe)
+Görüntü Boyutu        : 512x512
+Sıfır Geçişi Kenarları : 49119 piksel

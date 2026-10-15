@@ -1,0 +1,8 @@
+============================================================
+Ödev 4.5: 3x3 Laplacian ve Sıfır Geçişi Raporu
+============================================================
+
+Görüntü Boyutu                 : 512x512
+Gauss'suz Sıfır Geçişi Kenarları: 57765 piksel (Gürültü baskın)
+Gauss'lu Sıfır Geçişi Kenarları : 52926 piksel (Anlamlı hatlar)
+Gürültü Eleme Oranı            : %8.38

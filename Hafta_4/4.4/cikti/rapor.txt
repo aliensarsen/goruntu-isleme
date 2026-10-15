@@ -1,0 +1,11 @@
+============================================================
+Ödev 4.4: Prewitt vs Sobel Karşılaştırma Raporu
+============================================================
+
+Görüntü Boyutu         : 512x512
+Prewitt Kenar Pikseli  : 18240
+Sobel Kenar Pikseli    : 17900
+Ortak Kenar Pikseli    : 17878
+İkili Benzerlik (IoU)  : 0.9790 (%97.90)
+Maksimum Büyüklük Farkı: 7
+Ortalama Büyüklük Farkı: 0.37
