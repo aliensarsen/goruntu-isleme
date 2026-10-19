@@ -2,7 +2,7 @@
 
 **Öğrenci:** aliensarsen  
 **Ders:** Görüntü İşleme / Bilgisayarlı Görme  
-**Depo:** [github.com/aliensarsen/akademi](https://github.com/aliensarsen/akademi)
+**Depo:** [github.com/aliensarsen/goruntu-isleme](https://github.com/aliensarsen/goruntu-isleme)
 
 ---
 
