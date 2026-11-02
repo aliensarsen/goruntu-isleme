@@ -71,6 +71,19 @@
 
 ---
 
+## 📂 Hafta 6: Hough Dönüşümleri (Doğru, Çember, Eş Merkezli Çemberler ve CUDA)
+
+| Ödev Kodu | Konu | Çıktılar / Rapor | Bağlantı |
+| :---: | :--- | :--- | :---: |
+| **6.1** | **OpenCV HoughLines ve HoughLinesP ile Doğru Tespiti**<br>• Canny + 3x3 medyan filtreleme<br>• Standart Hough ve Olasılıksal Hough doğru parçaları | `dogrular_houghlines.png`<br>`dogrular_houghlinesp.png` | [📂 İncele](Hafta_6/6.1/) |
+| **6.2** | **Özel Hough Doğru Dönüşümü ve Oylama Matrisi**<br>• Polar doğru $(\rho, \theta)$ modeliyle sıfırdan akümülatör<br>• Inferno ısı haritası ve NMS ile tepe tespiti | `oylama_matrisi.png`<br>`dogrular_kendi.png` | [📂 İncele](Hafta_6/6.2/) |
+| **6.3** | **OpenCV HoughCircles ile Çember Tespiti**<br>• Canny + medyan ve `HOUGH_GRADIENT`<br>• Smarties şekerlerinin merkez ve yarıçap tespiti (12 çember) | `cemberler_houghcircles.png`<br>`rapor.txt` | [📂 İncele](Hafta_6/6.3/) |
+| **6.4** | **Özel 3 Boyutlu Hough Çember Dönüşümü**<br>• $[y, x, r]$ 3B akümülatör matrisinde sıfırdan oylama<br>• Oy/çevre normalizasyonu ve 2B izdüşüm ısı haritası | `oylama_matrisi_merkezler.png`<br>`cemberler_kendi.png` | [📂 İncele](Hafta_6/6.4/) |
+| **6.5** | **Gradyan Yönlü Eş Merkezli Çember Tespiti**<br>• Sobel normali doğrultusunda merkez oylaması<br>• Aynı sütundaki çoklu tepelerle eş merkezli 2 küme | `oylama_merkez_skoru.png`<br>`cemberler_es_merkezli.png` | [📂 İncele](Hafta_6/6.5/) |
+| **6.6** | **CUDA ile Paralel Hough Line Oylaması**<br>• `hough_line.cu` CUDA C çekirdeği ve atomicAdd<br>• CPU ile mutlak fark = 0 ve 37x - 62x GPU hızlanması | `dogrular_cuda.png`<br>`test.txt` | [📂 İncele](Hafta_6/6.6/) |
+
+---
+
 ## 🛠️ Genel Gereksinimler ve Çalıştırma
 ```bash
 pip install opencv-python numpy matplotlib

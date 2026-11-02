@@ -1,0 +1,12 @@
+============================================================
+Ödev 6.5: Gradyan Yönlü Eş Merkezli Çember Tespiti Raporu
+============================================================
+Görüntü Boyutu                      : 520x400
+Oylama Matrisi Boyutu (b x a x r)   : (400, 520, 101)
+Maksimum Oy                         : 247
+Tespit Edilen Eş Merkezli Küme Sayısı: 2
+
+Küme 1: Merkez=(390, 150) | Halka Sayısı=3 | Yarıçaplar=[21, 46, 71] | Skor=3.32
+Küme 2: Merkez=(150, 190) | Halka Sayısı=3 | Yarıçaplar=[36, 66, 96] | Skor=2.82
+
+Tek Halkalı (Bağımsız) Merkez Sayısı: 2

@@ -1,0 +1,22 @@
+============================================================
+Ödev 6.2: Özel Hough Doğru Dönüşümü Analiz Raporu
+============================================================
+Oylama Matrisi Boyutu (rho x theta): (1587, 180)
+Maksimum Oy Sayısı                  : 209
+Tespit Edilen Doğru Sayısı (Esik 100): 14
+
+Tespit Edilen Doğrular:
+  * rho=  303 px | theta=  0.0° | oy=209 oy
+  * rho=  411 px | theta= 90.0° | oy=181 oy
+  * rho= -392 px | theta=178.0° | oy=162 oy
+  * rho= -437 px | theta=177.0° | oy=149 oy
+  * rho=  310 px | theta= 90.0° | oy=138 oy
+  * rho=  258 px | theta=  1.0° | oy=121 oy
+  * rho= -533 px | theta=175.0° | oy=119 oy
+  * rho= -492 px | theta=176.0° | oy=116 oy
+  * rho=  170 px | theta= 90.0° | oy=116 oy
+  * rho= -496 px | theta=176.0° | oy=111 oy
+  * rho= -504 px | theta=176.0° | oy=107 oy
+  * rho=  316 px | theta= 89.0° | oy=103 oy
+  * rho= -509 px | theta=176.0° | oy=102 oy
+  * rho=  261 px | theta= 90.0° | oy=100 oy

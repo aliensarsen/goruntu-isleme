@@ -1,0 +1,9 @@
+============================================================
+Ödev 6.1: OpenCV Hough Doğru Tespiti Raporu
+============================================================
+
+Girdi Görüntüsü            : sudoku.png (558x563)
+Canny Kenar Piksel Sayısı  : 29537
+3x3 Median Sonrası Pikseller: 7129
+cv2.HoughLines (Kırmızı)    : 13 adet sonsuz doğru
+cv2.HoughLinesP (Yeşil)     : 31 adet doğru parçası (segment)

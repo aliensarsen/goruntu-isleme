@@ -1,0 +1,20 @@
+============================================================
+Ödev 6.3: OpenCV HoughCircles Çember Tespiti Raporu
+============================================================
+
+Girdi Görüntüsü        : smarties.png (413x356)
+Tespit Edilen Çember Sayısı: 12
+
+Çember Detayları:
+   1. Çember: Merkez=(269, 117), Yarıçap=27 px
+   2. Çember: Merkez=(387, 171), Yarıçap=26 px
+   3. Çember: Merkez=(293, 321), Yarıçap=27 px
+   4. Çember: Merkez=(211, 309), Yarıçap=34 px
+   5. Çember: Merkez=(163, 267), Yarıçap=39 px
+   6. Çember: Merkez=(289, 217), Yarıçap=28 px
+   7. Çember: Merkez=(379,  83), Yarıçap=28 px
+   8. Çember: Merkez=( 91, 267), Yarıçap=39 px
+   9. Çember: Merkez=(347, 231), Yarıçap=23 px
+  10. Çember: Merkez=( 39, 223), Yarıçap=32 px
+  11. Çember: Merkez=(139, 329), Yarıçap=32 px
+  12. Çember: Merkez=(203, 215), Yarıçap=29 px

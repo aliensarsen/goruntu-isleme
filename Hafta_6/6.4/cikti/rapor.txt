@@ -1,0 +1,21 @@
+============================================================
+Ödev 6.4: Özel 3B Hough Çember Dönüşümü Raporu
+============================================================
+
+Oylama Matrisi Boyutu (b x a x r): (356, 413, 21)
+Maksimum Oy Sayısı                : 50
+Eşik (Oy/Çevre >= 0.2) İle Tespit: 12 çember
+
+Tespit Edilen Çemberler:
+   1. Çember: Merkez=(287, 214), r=26 px | Oy/Çevre=0.31
+   2. Çember: Merkez=(269, 117), r=26 px | Oy/Çevre=0.29
+   3. Çember: Merkez=(205, 211), r=26 px | Oy/Çevre=0.28
+   4. Çember: Merkez=(152, 271), r=27 px | Oy/Çevre=0.26
+   5. Çember: Merkez=(377,  81), r=27 px | Oy/Çevre=0.25
+   6. Çember: Merkez=(388, 171), r=26 px | Oy/Çevre=0.24
+   7. Çember: Merkez=(347, 238), r=27 px | Oy/Çevre=0.24
+   8. Çember: Merkez=( 33, 228), r=26 px | Oy/Çevre=0.23
+   9. Çember: Merkez=(295, 321), r=27 px | Oy/Çevre=0.22
+  10. Çember: Merkez=(134, 324), r=25 px | Oy/Çevre=0.21
+  11. Çember: Merkez=( 98, 259), r=27 px | Oy/Çevre=0.21
+  12. Çember: Merkez=(220, 309), r=26 px | Oy/Çevre=0.20
