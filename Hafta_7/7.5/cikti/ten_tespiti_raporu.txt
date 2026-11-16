@@ -1,0 +1,38 @@
+================================================================================
+    ÖDEV 7.5 (GÖREV 5): TEN RENGİ TESPİTİ VE RENK UZAYI KIYASLAMA RAPORU        
+================================================================================
+
+Tarih: 16 Kasım 2026
+Girdi Görseli: /Users/aliensarsen/goruntu_isleme/Hafta_7/girdi/insan_tenleri.jpg (1024x508, 520,192 piksel)
+
+1. RENK UZAYLARININ SAYISAL TEN TESPİT SONUÇLARI
+   -----------------------------------------------------------------------------
+   Renk Uzayı      | Ten Piksel Sayısı    | Ten Oranı (%)   | Ten Dışı Renk
+   -----------------------------------------------------------------------------
+   RGB (Peer)      |           144,144 |         27.71% | Tam Kırmızı [0,0,255]
+   YCbCr (Chai)    |           146,793 |         28.22% | Tam Kırmızı [0,0,255]
+   HSV (Hue-Sat)   |           133,217 |         25.61% | Tam Kırmızı [0,0,255]
+   -----------------------------------------------------------------------------
+
+2. NEDEN YCbCr VE HSV BU PROBLEM İÇİN RGB'DEN ÇOK DAHA UYGUNDUR?
+
+   A. RGB Uzayının Temel Zafiyeti:
+      - RGB'de aydınlık (luminans) ile renk (krominans) tamamen iç içedir.
+      - Görseldeki sarı, turuncu ve kırmızı arka plan kutuları R > G > B şartını sağladığı için
+        RGB eşiklemesinde ten zannedilerek yüksek Yanlış Pozitif (False Positive) üretmektedir.
+      - Koyu tenli (Afro-Amerikan) bireylerin gölgede kalan yüz kısımları R > 95 eşiğinin altında
+        kalarak elenmekte ve Yanlış Negatif (False Negative) oluşmaktadır.
+
+   B. YCbCr Uzayının Üstünlüğü:
+      - YCbCr uzayı parlaklığı (Y) renk farklarından (Cb, Cr) tamamen ayırır.
+      - Biyolojik olarak tüm ırklardaki (Kafkas, Asyalı, Afrikalı, Latin) insan derisinin
+        içerdiği hemoglobin ve melanin pigmentleri Cb-Cr kroma düzleminde çok dar ve tutarlı
+        bir küme oluşturur (Cr: 133-173, Cb: 77-127).
+      - Ten rengi koyulaşsa bile kroma değerleri neredeyse değişmez, yalnızca Y azalır.
+      - Bu nedenle YCbCr, görseldeki 21 farklı yüzün tenini arka planlardan mükemmel ayrıştırır.
+
+   C. HSV Uzayının Üstünlüğü:
+      - Ton (Hue) kanalı, ışık yoğunluğundan (Value) bağımsız saf dalga boyunu verir.
+      - İnsan teni 0-22 derece ton açısına hapsolmuştur.
+      - Doygunluk (Saturation) eşiği (35-190) eklenerek yapay ve aşırı doymuş sarı/turuncu
+        arka planlar ten renginden kolayca elenebilir.

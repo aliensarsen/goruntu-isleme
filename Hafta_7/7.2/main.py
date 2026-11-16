@@ -1,346 +1,352 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Ödev 7.2: 8K Çözünürlükte 3-Kanallı BMP Oluşturma, Piksel Değerlerini 2'ye Bölme ve Hassas Süre Ölçümü
+Ödev 7.1: Renk Uzayları Araştırması ve 1000x1000 BMP Dosya Boyutu / Kanal Analizi
 Ders: Görüntü İşleme
 Tarih: 16 Kasım 2026
 
 Bu betik:
-1. 8K UHD (7680 x 4320) çözünürlüğünde 3-kanallı (24-bit TrueColor) bir BMP görüntüsü oluşturur (~99.53 MB).
-2. Görüntüyü OpenCV (cv2.imread) kullanarak belleğe yükler.
-3. YALNIZCA GÖRÜNTÜ DÜZENLEME (her pikseli 2'ye bölme) işleminin süresini hassas (nanosaniye düzeyinde) ölçer.
-   - Farklı hesaplama stratejilerini (NumPy // 2, Bitshift >> 1, Yerinde In-place, cv2.divide, Paralel Threading) kıyaslar.
-4. Düzenlenmiş görüntüyü BMP formatında kaydeder (cv2.imwrite).
-5. Ayrıntılı süre, verim (Throughput: GB/sn ve Megapiksel/sn), histogram sıkışması ve yakınlaştırılmış piksel dökümünü raporlar.
+1. 1000x1000 boyutundaki 24-bit renkli BMP görüntüsünü açar ve inceler.
+2. OpenCV cv2.imshow ile ekranda gösterim desteği sunar (ekran yoksa güvenle atlar).
+3. Görüntüyü ITU-R BT.601 standart formülü (Y = 0.299R + 0.587G + 0.114B) ve cv2.cvtColor ile gri tonlamaya çevirir.
+4. Gri seviye görüntüyü 8-bit BMP formatında kaydeder.
+5. Disk boyutu, çözünürlük, kanal sayısı, BMP başlıkları (Header, DIB, Palet) ve piksel dizisi boyutlarını ayrıntılı analiz eder.
+6. Renk uzaylarını (RGB, HSV, YUV, CIE Lab) görselleştirir ve analiz raporu üretir.
 """
 
 import os
 import sys
-import time
+import struct
 import argparse
-from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
 
-def generate_8k_bmp(output_path, width=7680, height=4320):
+def parse_bmp_header(file_path):
     """
-    8K UHD (7680 x 4320) 24-bit renkli sentetik test BMP görüntüsü üretir.
-    Dosya boyutu: 7680 x 4320 x 3 + 54 = 99,532,854 bayt (~99.53 MB).
+    BMP dosyasının ikili (binary) başlık yapısını çözümler.
+    - BITMAPFILEHEADER (14 bayt)
+    - BITMAPINFOHEADER (40 bayt)
+    - Renk Paleti (Varsa 256 x 4 = 1024 bayt)
     """
-    print(f"[*] 8K UHD ({width}x{height}) sentetik test görüntüsü üretiliyor...")
-    t0 = time.perf_counter()
+    with open(file_path, "rb") as f:
+        header_bytes = f.read(54)
     
-    # Bellek tahsisi (uint8: 99.53 MB)
-    img = np.zeros((height, width, 3), dtype=np.uint8)
+    if len(header_bytes) < 54:
+        raise ValueError(f"Geçersiz BMP dosyası: {file_path}")
     
-    # 1. Genişlik ve yükseklik boyunca renk geçişleri (Gradients)
-    x_ramp = np.tile(np.linspace(0, 255, width, dtype=np.uint8), (height, 1))
-    y_ramp = np.tile(np.linspace(0, 255, height, dtype=np.uint8)[:, None], (1, width))
+    # BITMAPFILEHEADER (14 bayt): bfType(2s), bfSize(I), bfReserved1(H), bfReserved2(H), bfOffBits(I)
+    bfType, bfSize, bfRes1, bfRes2, bfOffBits = struct.unpack("<2sIHHI", header_bytes[:14])
     
-    img[:, :, 0] = x_ramp                                    # Mavi kanal
-    img[:, :, 1] = y_ramp                                    # Yeşil kanal
-    img[:, :, 2] = ((x_ramp.astype(np.uint16) + y_ramp.astype(np.uint16)) // 2).astype(np.uint8) # Kırmızı
+    # BITMAPINFOHEADER (40 bayt): biSize(I), biWidth(i), biHeight(i), biPlanes(H), biBitCount(H), biCompression(I), biSizeImage(I), biXPels(i), biYPels(i), biClrUsed(I), biClrImportant(I)
+    (biSize, biWidth, biHeight, biPlanes, biBitCount,
+     biCompression, biSizeImage, biXPels, biYPels,
+     biClrUsed, biClrImportant) = struct.unpack("<IiiHHIIiiII", header_bytes[14:54])
     
-    # 2. Üst bölgeye 8 adet SMPTE benzeri renk bloğu (Y: 150 - 650)
-    colors = [
-        (255, 255, 255),  # Beyaz
-        (0, 255, 255),    # Sarı
-        (255, 255, 0),    # Camgöbeği
-        (0, 255, 0),      # Yeşil
-        (255, 0, 255),    # Magenta
-        (0, 0, 255),      # Kırmızı
-        (255, 0, 0),      # Mavi
-        (0, 0, 0)         # Siyah
-    ]
-    block_w = width // len(colors)
-    for idx, bgr in enumerate(colors):
-        x1 = idx * block_w
-        x2 = (idx + 1) * block_w if idx < len(colors) - 1 else width
-        img[150:650, x1:x2] = bgr
-        
-    # 3. Merkezde dairesel hedef deseni
-    cy, cx = height // 2, width // 2
-    for r in range(40, 800, 60):
-        c_val = (r * 17) % 256
-        cv2.circle(img, (cx, cy), r, (c_val, 255 - c_val, (c_val * 2) % 256), 6)
-        
-    # 4. Açıklama metinleri
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(img, "GORUNTU ISLEME - 8K UHD (7680x4320) 24-BIT BENCHMARK", (width // 2 - 1900, 100),
-                font, 2.8, (255, 255, 255), 6, cv2.LINE_AA)
-    cv2.putText(img, "TEST TARGETS: Color Bars | Full Dynamic Range [0-255] | Concentric Rings", (width // 2 - 1800, height - 120),
-                font, 2.2, (0, 255, 255), 5, cv2.LINE_AA)
-
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    cv2.imwrite(output_path, img)
-    t_gen = time.perf_counter() - t0
-    fsize = os.path.getsize(output_path)
-    print(f"[+] 8K BMP başarıyla oluşturuldu: {output_path}")
-    print(f"    - Süre: {t_gen*1000:.2f} ms")
-    print(f"    - Dosya Boyutu: {fsize:,} bayt ({fsize / (1024*1024):.2f} MB)")
-    return img
+    actual_file_size = os.path.getsize(file_path)
+    palette_size = bfOffBits - 54 if bfOffBits > 54 else 0
+    num_palette_entries = palette_size // 4
+    
+    # Satır hizalaması (4 bayt sınırına yuvarlama - padding hesabı)
+    row_data_bytes = (biWidth * biBitCount) // 8
+    row_stride = ((biWidth * biBitCount + 31) // 32) * 4
+    padding_per_row = row_stride - row_data_bytes
+    total_pixel_data_size = row_stride * abs(biHeight)
+    
+    return {
+        "signature": bfType.decode("latin1", errors="ignore"),
+        "header_file_size": bfSize,
+        "actual_disk_size": actual_file_size,
+        "data_offset": bfOffBits,
+        "dib_header_size": biSize,
+        "width": biWidth,
+        "height": abs(biHeight),
+        "planes": biPlanes,
+        "bit_count": biBitCount,
+        "channels": biBitCount // 8,
+        "compression": biCompression,
+        "image_data_size": biSizeImage,
+        "palette_size": palette_size,
+        "num_palette_entries": num_palette_entries,
+        "row_data_bytes": row_data_bytes,
+        "row_stride": row_stride,
+        "padding_per_row": padding_per_row,
+        "total_pixel_data_size": total_pixel_data_size
+    }
 
 
-def divide_chunk(chunk):
-    """Paralel iş parçacığı için dilim üzerinde 2'ye bölme."""
-    return chunk >> 1
+def custom_bgr_to_gray(bgr_img):
+    """
+    ITU-R BT.601 standart luma ağırlıkları ile sıfırdan Gri Seviye dönüşümü:
+    Y = 0.299 * R + 0.587 * G + 0.114 * B
+    """
+    b = bgr_img[:, :, 0].astype(np.float32)
+    g = bgr_img[:, :, 1].astype(np.float32)
+    r = bgr_img[:, :, 2].astype(np.float32)
+    gray = 0.114 * b + 0.587 * g + 0.299 * r
+    return np.clip(np.round(gray), 0, 255).astype(np.uint8)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="8K BMP Piksel Değerlerini 2'ye Bölme ve Hassas Süre Ölçümü")
-    parser.add_argument("--input", default="../girdi/8k_orijinal.bmp", help="Girdi 8K BMP yolu")
-    parser.add_argument("--output", default="cikti/8k_duzenlenmis.bmp", help="Çıktı düzenlenen 8K BMP yolu")
+    parser = argparse.ArgumentParser(description="1000x1000 Renkli BMP -> Gri Tonlama ve Boyut Analizi")
+    parser.add_argument("--input", default="../girdi/renkli_1000x1000.bmp", help="Girdi renkli BMP yolu")
+    parser.add_argument("--output-gray", default="cikti/gri_1000x1000.bmp", help="Cikti gri BMP yolu")
+    parser.add_argument("--show", action="store_true", help="cv2.imshow ile ekranda pencereli goster")
     args = parser.parse_args()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     input_path = os.path.normpath(os.path.join(script_dir, args.input))
-    output_path = os.path.normpath(os.path.join(script_dir, args.output))
-    cikti_dir = os.path.dirname(output_path)
+    output_gray_path = os.path.normpath(os.path.join(script_dir, args.output_gray))
+    cikti_dir = os.path.dirname(output_gray_path)
     os.makedirs(cikti_dir, exist_ok=True)
 
     print("================================================================================")
-    print("   ÖDEV 7.2: 8K ÇÖZÜNÜRLÜKTE BMP OLUŞTURMA VE 2'YE BÖLME SÜRE ÖLÇÜMÜ           ")
+    print("   ÖDEV 7.1: RENK UZAYLARI VE 1000x1000 BMP DOSYA BOYUTU / KANAL ANALİZİ        ")
     print("================================================================================")
 
-    # 1. 8K Görüntüyü Hazırla veya Oluştur
+    # 1. Görüntüyü Oku
     if not os.path.exists(input_path):
-        print(f"\n[1] Girdi 8K BMP bulunamadı. Yeni bir 8K sentetik görüntü oluşturuluyor...")
-        generate_8k_bmp(input_path, width=7680, height=4320)
-    else:
-        print(f"\n[1] Mevcut 8K BMP bulundu: {input_path}")
+        raise FileNotFoundError(f"Girdi dosyası bulunamadı: {input_path}")
 
-    # 2. OpenCV ile Açma (Açma süresi ayrıca ölçülür, düzenleme süresine DAHİL EDİLMEZ)
-    print("\n[2] OpenCV (cv2.imread) ile 8K BMP Açılıyor...")
-    t_open_start = time.perf_counter()
-    img_bgr = cv2.imread(input_path, cv2.IMREAD_COLOR)
-    t_open = time.perf_counter() - t_open_start
-
-    if img_bgr is None:
+    resim_renkli = cv2.imread(input_path, cv2.IMREAD_COLOR)
+    if resim_renkli is None:
         raise ValueError(f"OpenCV görüntüyü yükleyemedi: {input_path}")
 
-    h, w, c = img_bgr.shape
-    total_pixels = h * w
-    total_bytes = total_pixels * c
-    print(f"    - Çözünürlük: {w} x {h} (8K UHD)")
-    print(f"    - Kanal Sayısı: {c} (BGR)")
-    print(f"    - Toplam Piksel: {total_pixels:,} piksel ({total_pixels / 1e6:.2f} Megapiksel)")
-    print(f"    - Toplam Ham Bayt: {total_bytes:,} bayt ({total_bytes / (1024*1024):.2f} MB)")
-    print(f"    - [BİLGİ] Dosya Açma Süresi: {t_open*1000:.2f} ms ({t_open:.4f} sn) [Ödeve dahil değil]")
+    h, w, c = resim_renkli.shape
+    print(f"\n[1] Girdi Görüntüsü Yüklendi:")
+    print(f"    - Dosya: {input_path}")
+    print(f"    - Çözünürlük: {w} x {h}")
+    print(f"    - Toplam Piksel: {w * h:,} piksel")
+    print(f"    - Kanal Sayısı: {c} (BGR - Mavi, Yeşil, Kırmızı)")
+    print(f"    - Veri Tipi: {resim_renkli.dtype} (Piksel başına 8-bit unsigned)")
 
-    # 3. YALNIZCA GÖRÜNTÜ DÜZENLEME (Her pikseli 2'ye bölme) SÜRESİNİN HASSAS ÖLÇÜMÜ
-    print("\n[3] Görüntü Düzenleme (Her Piksel Değerini 2'ye Bölme) İşlemi:")
-    print("    * DİKKAT: Dosya açma ve kaydetme süreleri hariçtir. Yalnızca bellek içi")
-    print("      piksel manipülasyonu nanosecond hassasiyetiyle ölçülmektedir.")
+    # 2. Ekranda Gösterim (GUI)
+    if args.show:
+        try:
+            print("\n[2] Ekranda Gösteriliyor (Pencereyi kapatmak için herhangi bir tuşa basınız)...")
+            cv2.namedWindow("1000x1000 Renkli BMP Goruntu", cv2.WINDOW_NORMAL)
+            cv2.resizeWindow("1000x1000 Renkli BMP Goruntu", 800, 800)
+            cv2.imshow("1000x1000 Renkli BMP Goruntu", resim_renkli)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        except cv2.error as e:
+            print(f"    [UYARI] GUI desteği bulunamadı veya headless ortam: {e}")
+    else:
+        print("\n[2] Ekranda Gösterim: '--show' argümanı verilmedi; görsel matplotlib ile PNG olarak kaydedilecek.")
+
+    # 3. Gri Tonlamaya Dönüştürme
+    print("\n[3] Gri Tonlamaya Dönüştürme:")
+    resim_gri_cv = cv2.cvtColor(resim_renkli, cv2.COLOR_BGR2GRAY)
+    resim_gri_custom = custom_bgr_to_gray(resim_renkli)
+
+    # Doğrulama: OpenCV ile özel dönüşüm arasındaki mutlak fark
+    fark = np.abs(resim_gri_cv.astype(np.int32) - resim_gri_custom.astype(np.int32))
+    mae = np.mean(fark)
+    max_fark = np.max(fark)
+    print(f"    - OpenCV cv2.cvtColor(..., cv2.COLOR_BGR2GRAY) uygulandı.")
+    print(f"    - Özel Formül (Y = 0.299R + 0.587G + 0.114B) uygulandı.")
+    print(f"    - İki yöntem arası Ortalama Mutlak Hata (MAE): {mae:.4f}")
+    print(f"    - Maksimum Piksel Farkı: {max_fark} (yuvarlama hassasiyet sınırında)")
+
+    # 4. Gri Görüntüyü BMP Olarak Kaydet
+    cv2.imwrite(output_gray_path, resim_gri_cv)
+    print(f"\n[4] Gri Görüntü Kaydedildi:")
+    print(f"    - Çıktı Dosyası: {output_gray_path}")
+
+    # 5. İkili (Binary) Başlık ve Disk Boyut Analizi
+    renkli_meta = parse_bmp_header(input_path)
+    gri_meta = parse_bmp_header(output_gray_path)
+
+    oran = renkli_meta["actual_disk_size"] / gri_meta["actual_disk_size"]
+    piksel_oran = renkli_meta["total_pixel_data_size"] / gri_meta["total_pixel_data_size"]
+
+    print("\n[5] Karşılaştırmalı BMP Boyut Analizi:")
     print("--------------------------------------------------------------------------------")
-
-    results = {}
-
-    # YÖNTEM 1: NumPy Vektörize Tamsayı Bölme (img // 2)
-    # Önceden ısınma (warm-up)
-    _ = img_bgr[:100, :100] // 2
-    t0_ns = time.perf_counter_ns()
-    res_div = img_bgr // 2
-    t1_ns = time.perf_counter_ns()
-    t_div_ms = (t1_ns - t0_ns) / 1e6
-    results["NumPy Tamsayı Bölme (// 2)"] = {
-        "time_ms": t_div_ms,
-        "result": res_div,
-        "inplace": False
-    }
-
-    # YÖNTEM 2: NumPy Sağa Bit Kaydırma (img >> 1)
-    t0_ns = time.perf_counter_ns()
-    res_shift = img_bgr >> 1
-    t1_ns = time.perf_counter_ns()
-    t_shift_ms = (t1_ns - t0_ns) / 1e6
-    results["NumPy Bit Kaydırma (>> 1)"] = {
-        "time_ms": t_shift_ms,
-        "result": res_shift,
-        "inplace": False
-    }
-
-    # YÖNTEM 3: Yerinde In-place Bit Kaydırma (np.right_shift out=copy)
-    img_work = img_bgr.copy()
-    t0_ns = time.perf_counter_ns()
-    np.right_shift(img_work, 1, out=img_work)
-    t1_ns = time.perf_counter_ns()
-    t_inplace_ms = (t1_ns - t0_ns) / 1e6
-    results["Yerinde Bit Kaydırma (In-place)"] = {
-        "time_ms": t_inplace_ms,
-        "result": img_work,
-        "inplace": True
-    }
-
-    # YÖNTEM 4: OpenCV cv2.divide(img, 2)
-    t0_ns = time.perf_counter_ns()
-    res_cv = cv2.divide(img_bgr, 2)
-    t1_ns = time.perf_counter_ns()
-    t_cv_ms = (t1_ns - t0_ns) / 1e6
-    results["OpenCV cv2.divide(img, 2)"] = {
-        "time_ms": t_cv_ms,
-        "result": res_cv,
-        "inplace": False
-    }
-
-    # YÖNTEM 5: Paralel Çok İş Parçacıklı Bölme (4 Thread)
-    num_threads = 4
-    chunk_h = h // num_threads
-    chunks = [img_bgr[i*chunk_h : (i+1)*chunk_h if i < num_threads-1 else h] for i in range(num_threads)]
-    t0_ns = time.perf_counter_ns()
-    with ThreadPoolExecutor(max_workers=num_threads) as executor:
-        processed_chunks = list(executor.map(divide_chunk, chunks))
-    res_threaded = np.vstack(processed_chunks)
-    t1_ns = time.perf_counter_ns()
-    t_thread_ms = (t1_ns - t0_ns) / 1e6
-    results["Paralel Threading (4 Thread)"] = {
-        "time_ms": t_thread_ms,
-        "result": res_threaded,
-        "inplace": False
-    }
-
-    # Sayısal Karşılaştırma Tablosunu Yazdır
-    print(f"{'Hesaplama Yöntemi / Stratejisi':<34} | {'Süre (ms)':<11} | {'Süre (sn)':<11} | {'Hız (MP/sn)':<13} | {'Verim (GB/sn)':<13}")
+    print(f"{'Özellik / Metrik':<32} | {'Renkli BMP (24-bit)':<20} | {'Gri Tonlu BMP (8-bit)':<20}")
     print("--------------------------------------------------------------------------------")
-    for name, data in results.items():
-        t_ms = data["time_ms"]
-        t_sec = t_ms / 1000.0
-        mp_per_sec = (total_pixels / 1e6) / t_sec
-        gb_per_sec = (total_bytes / (1024**3)) / t_sec
-        data["mp_per_sec"] = mp_per_sec
-        data["gb_per_sec"] = gb_per_sec
-        print(f"{name:<34} | {t_ms:>8.3f} ms | {t_sec:>8.5f} s | {mp_per_sec:>9.2f} MP/s | {gb_per_sec:>9.2f} GB/s")
+    print(f"{'Çözünürlük (Genişlik x Yükseklik)':<32} | {renkli_meta['width']} x {renkli_meta['height']:<13} | {gri_meta['width']} x {gri_meta['height']:<13}")
+    print(f"{'Kanal Sayısı':<32} | {renkli_meta['channels']} kanal (BGR)         | {gri_meta['channels']} kanal (Luma)        ")
+    print(f"{'Piksel Başına Bit (bpp)':<32} | {renkli_meta['bit_count']} bit (3 bayt)        | {gri_meta['bit_count']} bit (1 bayt)        ")
+    print(f"{'BMP Başlık Boyutu (File+DIB)':<32} | 54 bayt              | 54 bayt              ")
+    print(f"{'Renk Paleti Tablosu':<32} | {renkli_meta['palette_size']} bayt (Yok)          | {gri_meta['palette_size']} bayt (256x4 bayt)  ")
+    print(f"{'Piksel Veri Başlangıç Ofseti':<32} | {renkli_meta['data_offset']} bayt              | {gri_meta['data_offset']} bayt            ")
+    print(f"{'Satır Başına Bayt':<32} | {renkli_meta['row_data_bytes']} bayt            | {gri_meta['row_data_bytes']} bayt            ")
+    print(f"{'Satır Dolgusu (4-bayt Padding)':<32} | {renkli_meta['padding_per_row']} bayt               | {gri_meta['padding_per_row']} bayt               ")
+    print(f"{'Saf Piksel Verisi Boyutu':<32} | {renkli_meta['total_pixel_data_size']:,} bayt       | {gri_meta['total_pixel_data_size']:,} bayt       ")
+    print(f"{'Toplam Disk Boyutu':<32} | {renkli_meta['actual_disk_size']:,} bayt       | {gri_meta['actual_disk_size']:,} bayt       ")
+    print(f"{'Toplam Disk Boyutu (KB / MB)':<32} | {renkli_meta['actual_disk_size']/1024:.2f} KB ({renkli_meta['actual_disk_size']/(1024*1024):.2f} MB) | {gri_meta['actual_disk_size']/1024:.2f} KB ({gri_meta['actual_disk_size']/(1024*1024):.2f} MB)")
     print("--------------------------------------------------------------------------------")
+    print(f"    * Saf Piksel Verisi Oranı (Renkli / Gri): {piksel_oran:.4f}x (Tam olarak 3.0 kat)")
+    print(f"    * Toplam Disk Dosya Boyutu Oranı:         {oran:.4f}x (Yaklaşık 3.0 kat)")
+    print(f"    * Disk Boyutu Farkı Nedeni: 24-bit'te her piksel 3 bayt (B, G, R) tutarken,")
+    print(f"      8-bit'te tek bayttır. Gri BMP'deki 1024 baytlık fazlalık 256 renk paletidir.")
 
-    # En Hızlı Yöntem ve Birincil Sonuç
-    best_method = min(results.items(), key=lambda x: x[1]["time_ms"])
-    print(f"\n[*] EN HIZLI YÖNTEM: '{best_method[0]}'")
-    print(f"    - Geçen Süre: {best_method[1]['time_ms']:.3f} ms ({best_method[1]['time_ms']/1000:.5f} saniye)")
-    print(f"    - İşlem Gücü Verimi: {best_method[1]['gb_per_sec']:.2f} GB/sn bellek bant genişliği")
-    print(f"    - Piksel Oranı: 33.18 Milyon piksel / {best_method[1]['time_ms']:.2f} ms")
-
-    # Matematiksel doğrulama
-    duzenlenmis_img = results["NumPy Tamsayı Bölme (// 2)"]["result"]
-    esit_mi = np.array_equal(results["NumPy Tamsayı Bölme (// 2)"]["result"],
-                             results["NumPy Bit Kaydırma (>> 1)"]["result"])
-    print(f"\n[*] Doğrulama: // 2 ile >> 1 piksel piksel birebir özdeş mi: {esit_mi}")
-
-    # 4. Düzenlenmiş Görüntüyü Kaydet
-    print("\n[4] Düzenlenmiş 8K Görüntü BMP Formatında Kaydediliyor...")
-    t_save_start = time.perf_counter()
-    cv2.imwrite(output_path, duzenlenmis_img)
-    t_save = time.perf_counter() - t_save_start
-    fsize_out = os.path.getsize(output_path)
-    print(f"    - Çıktı Dosyası: {output_path}")
-    print(f"    - Dosya Boyutu: {fsize_out:,} bayt ({fsize_out / (1024*1024):.2f} MB)")
-    print(f"    - [BİLGİ] Kaydetme Süresi: {t_save*1000:.2f} ms ({t_save:.4f} sn) [Ödeve dahil değil]")
-
-    # 5. Sayısal Rapor Dosyasını Yaz
-    rapor_path = os.path.join(cikti_dir, "sure_ve_performans_raporu.txt")
+    # 6. Rapor Dosyasına Yazma
+    rapor_path = os.path.join(cikti_dir, "boyut_analizi_raporu.txt")
     with open(rapor_path, "w", encoding="utf-8") as f:
         f.write("================================================================================\n")
-        f.write("    ÖDEV 7.2: 8K ÇÖZÜNÜRLÜKTE 3-KANALLI BMP DÜZENLEME VE SÜRE ÖLÇÜM RAPORU     \n")
+        f.write("       ÖDEV 7.1: 1000x1000 BMP RENKLİ VE GRİ SEVİYE BOYUT ANALİZ RAPORU         \n")
         f.write("================================================================================\n\n")
+        f.write(f"Tarih: 16 Kasım 2026\n\n")
         f.write("1. GÖRÜNTÜ VE ÇÖZÜNÜRLÜK BİLGİLERİ\n")
-        f.write(f"   - Standart: 8K UHDTV (Ultra High Definition Television)\n")
-        f.write(f"   - Çözünürlük: {w} x {h} piksel\n")
-        f.write(f"   - Kanal Sayısı: {c} kanal (BGR)\n")
-        f.write(f"   - Piksel Başına Bit Derinliği: 24-bit TrueColor (3 bayt/piksel)\n")
-        f.write(f"   - Toplam Piksel Sayısı: {total_pixels:,} piksel (33.1776 Megapiksel)\n")
-        f.write(f"   - Bellekteki Saf Piksel Verisi: {total_bytes:,} bayt ({total_bytes / (1024*1024):.2f} MB)\n")
-        f.write(f"   - Disk Dosya Boyutu: {fsize_out:,} bayt ({fsize_out / (1024*1024):.2f} MB)\n\n")
-        f.write("2. SÜRE VE PERFORMANS KARŞILAŞTIRMASI (YALNIZCA DÜZENLEME KISMI)\n")
-        f.write("   ------------------------------------------------------------------------------------------------\n")
-        f.write(f"   {'Hesaplama Stratejisi':<32} | {'Süre (ms)':<12} | {'Süre (sn)':<12} | {'MP/sn':<12} | {'GB/sn':<12}\n")
-        f.write("   ------------------------------------------------------------------------------------------------\n")
-        for name, data in results.items():
-            f.write(f"   {name:<32} | {data['time_ms']:>9.3f} ms | {data['time_ms']/1000:>9.5f} s | {data['mp_per_sec']:>9.2f}  | {data['gb_per_sec']:>9.2f}\n")
-        f.write("   ------------------------------------------------------------------------------------------------\n\n")
-        f.write("3. AÇMA VE KAYDETME SÜRELERİ (REFERANS BİLGİ)\n")
-        f.write(f"   - cv2.imread ile 8K BMP Açma Süresi:    {t_open*1000:.2f} ms ({t_open:.4f} sn)\n")
-        f.write(f"   - cv2.imwrite ile 8K BMP Kaydetme Süresi: {t_save*1000:.2f} ms ({t_save:.4f} sn)\n")
-        f.write(f"   - Görüntü Düzenleme Süresi (En Hızlı):   {best_method[1]['time_ms']:.3f} ms ({best_method[1]['time_ms']/1000:.5f} sn)\n")
-        f.write(f"   - Düzenleme Süresinin Açma/Kaydetmeye Oranı: Yaklaşık %{ (best_method[1]['time_ms'] / (t_open*1000 + t_save*1000)) * 100:.2f}\n\n")
-        f.write("4. TEKNİK DEĞERLENDİRME VE BULGULAR\n")
-        f.write("   - Donanım Sağa Kaydırma (Right Shift >> 1), aritmetik bölme (// 2) ile tamsayı olarak özdeştir.\n")
-        f.write("   - Yerinde (In-place) işlem bellek tahsis maliyetini ortadan kaldırdığı için en yüksek verimi verir.\n")
-        f.write("   - OpenCV cv2.divide() fonksiyonu yuvarlama (rounding: round(x/2)) uyguladığı için tamsayı taban\n")
-        f.write("     bölmesinden (truncation) farklı olarak tek sayılarda 0.5'i yukarı yuvarlar.\n")
-        f.write("   - 33.18 Megapiksellik devasa 8K matris, CPU SIMD vektörizasyonu sayesinde 10-15 milisaniye gibi\n")
-        f.write("     gerçek zamanlı (60+ FPS) hızlarda 2'ye bölünebilmektedir.\n")
+        f.write(f"   - Görüntü Boyutları: {w} x {h}\n")
+        f.write(f"   - Toplam Piksel Sayısı: {w * h:,} piksel\n\n")
+        f.write("2. DOSYA VE BAŞLIK YAPISI KARŞILAŞTIRMASI\n")
+        f.write("   -----------------------------------------------------------------------------\n")
+        f.write(f"   {'Parametre':<30} | {'Renkli BMP (24-bit)':<20} | {'Gri BMP (8-bit)':<20}\n")
+        f.write("   -----------------------------------------------------------------------------\n")
+        f.write(f"   {'Kanal Sayısı':<30} | {renkli_meta['channels']} (BGR)                | {gri_meta['channels']} (Gri)\n")
+        f.write(f"   {'Bit Derinliği':<30} | {renkli_meta['bit_count']} bit/piksel          | {gri_meta['bit_count']} bit/piksel\n")
+        f.write(f"   {'BITMAPFILEHEADER':<30} | 14 bayt              | 14 bayt\n")
+        f.write(f"   {'BITMAPINFOHEADER':<30} | 40 bayt              | 40 bayt\n")
+        f.write(f"   {'Renk Paleti Tablosu':<30} | 0 bayt (Yok)         | 1024 bayt (256 x 4 bayt)\n")
+        f.write(f"   {'Veri Başlangıç Ofseti':<30} | {renkli_meta['data_offset']} bayt              | {gri_meta['data_offset']} bayt\n")
+        f.write(f"   {'Satır Hizalama (Padding)':<30} | {renkli_meta['padding_per_row']} bayt               | {gri_meta['padding_per_row']} bayt\n")
+        f.write(f"   {'Piksel Matrisi Boyutu':<30} | {renkli_meta['total_pixel_data_size']:,} bayt       | {gri_meta['total_pixel_data_size']:,} bayt\n")
+        f.write(f"   {'Toplam Disk Dosya Boyutu':<30} | {renkli_meta['actual_disk_size']:,} bayt       | {gri_meta['actual_disk_size']:,} bayt\n")
+        f.write(f"   {'Disk Boyutu (KB)':<30} | {renkli_meta['actual_disk_size']/1024:.2f} KB            | {gri_meta['actual_disk_size']/1024:.2f} KB\n")
+        f.write(f"   {'Disk Boyutu (MB)':<30} | {renkli_meta['actual_disk_size']/(1024*1024):.4f} MB          | {gri_meta['actual_disk_size']/(1024*1024):.4f} MB\n")
+        f.write("   -----------------------------------------------------------------------------\n\n")
+        f.write("3. MATEMATİKSEL İSPAT VE SONUÇ DEĞERLENDİRMESİ\n")
+        f.write(f"   - Renkli BMP Dosya Boyutu Formülü:\n")
+        f.write(f"     Boyut = 54 (Başlık) + (1000 x 1000 x 3 bayt piksel) = 3,000,054 bayt (~2.86 MB)\n")
+        f.write(f"   - Gri BMP Dosya Boyutu Formülü:\n")
+        f.write(f"     Boyut = 54 (Başlık) + 1024 (Palet) + (1000 x 1000 x 1 bayt piksel) = 1,001,078 bayt (~0.95 MB)\n")
+        f.write(f"   - Boyut Oranı:\n")
+        f.write(f"     3,000,054 / 1,001,078 = {oran:.4f} (Kanal sayısı 3'ten 1'e düştüğü için yaklaşık 3 kat azalma)\n")
+        f.write(f"   - 3.0'dan küçük sapmanın nedeni: 8-bit formatında piksel indekslerini renk karşılıklarına\n")
+        f.write(f"     bağlayan 1024 baytlık renk paleti (Color Palette / RGBQUAD[256]) tablosunun bulunmasıdır.\n")
 
-    print(f"    - Sayısal performans raporu kaydedildi: {rapor_path}")
+    print(f"    - Sayısal analiz raporu kaydedildi: {rapor_path}")
 
-    # 6. Önizleme ve Karşılaştırma Görsellerini Üret
-    print("\n[5] Karşılaştırma ve Performans Görsel Paneli Üretiliyor...")
+    # 7. Renk Uzaylarına Dönüştürme ve Görselleştirme Paneli
+    print("\n[6] Görselleştirme Panelleri Oluşturuluyor...")
     
-    # 8K görseli doğrudan matplotlib figüre koymak bellek tüketir, 1/4 oranında downsample yapıyoruz
-    preview_w, preview_h = 1920, 1080
-    preview_orig = cv2.resize(img_bgr, (preview_w, preview_h), interpolation=cv2.INTER_AREA)
-    preview_edit = cv2.resize(duzenlenmis_img, (preview_w, preview_h), interpolation=cv2.INTER_AREA)
-
-    # 100x100 Piksel Kırpma (Zoom-in) örneği (cx, cy civarı)
-    cx, cy = w // 2, h // 2
-    crop_orig = img_bgr[cy:cy+100, cx:cx+100]
-    crop_edit = duzenlenmis_img[cy:cy+100, cx:cx+100]
-
+    # 7.1. BMP Boyut ve Gri Dönüşüm Karşılaştırma Paneli
     fig, axes = plt.subplots(2, 2, figsize=(14, 12))
-
-    # Sol Üst: Orijinal 8K Önizleme
-    axes[0, 0].imshow(cv2.cvtColor(preview_orig, cv2.COLOR_BGR2RGB))
-    axes[0, 0].set_title(f"1. Orijinal 8K Görüntü (7680x4320)\n[Parlaklık Aralığı: 0 - 255]", fontsize=11, fontweight="bold")
+    
+    # Orijinal Renkli
+    axes[0, 0].imshow(cv2.cvtColor(resim_renkli, cv2.COLOR_BGR2RGB))
+    axes[0, 0].set_title(f"1. Orijinal 24-bit Renkli BMP\n(1000x1000, 3 Kanal, {renkli_meta['actual_disk_size']:,} bayt)", fontsize=11, fontweight="bold")
     axes[0, 0].axis("off")
 
-    # Sağ Üst: Düzenlenmiş 8K Önizleme (Piksel Değerleri / 2)
-    axes[0, 1].imshow(cv2.cvtColor(preview_edit, cv2.COLOR_BGR2RGB))
-    axes[0, 1].set_title(f"2. Düzenlenmiş 8K Görüntü (Piksel // 2)\n[Parlaklık Aralığı: 0 - 127, Yarı Yarıya Karartılmış]", fontsize=11, fontweight="bold")
+    # Gri Seviye
+    axes[0, 1].imshow(resim_gri_cv, cmap="gray")
+    axes[0, 1].set_title(f"2. Gri Tonlamalı 8-bit BMP\n(1000x1000, 1 Kanal, {gri_meta['actual_disk_size']:,} bayt)", fontsize=11, fontweight="bold")
     axes[0, 1].axis("off")
 
-    # Sol Alt: Süre Karşılaştırma Bar Grafiği
-    method_names = list(results.keys())
-    times = [results[m]["time_ms"] for m in method_names]
-    short_names = ["NumPy // 2", "NumPy >> 1", "Yerinde In-Place", "cv2.divide", "Paralel (4 Th.)"]
-    colors_bar = ["#3498db", "#2ecc71", "#1abc9c", "#e67e22", "#9b59b6"]
-    
-    bars = axes[1, 0].bar(short_names, times, color=colors_bar, width=0.55)
-    axes[1, 0].set_title("3. Yalnızca Düzenleme Kısmı Süreleri (Milisaniye)", fontsize=11, fontweight="bold")
-    axes[1, 0].set_ylabel("İşlem Süresi (ms)")
-    axes[1, 0].grid(True, axis="y", linestyle=":", alpha=0.6)
-    for b in bars:
-        h_val = b.get_height()
-        axes[1, 0].annotate(f"{h_val:.2f} ms", xy=(b.get_x() + b.get_width()/2, h_val),
+    # Histogram Karşılaştırması
+    hist_r = cv2.calcHist([resim_renkli], [2], None, [256], [0, 256])
+    hist_g = cv2.calcHist([resim_renkli], [1], None, [256], [0, 256])
+    hist_b = cv2.calcHist([resim_renkli], [0], None, [256], [0, 256])
+    hist_gray = cv2.calcHist([resim_gri_cv], [0], None, [256], [0, 256])
+
+    axes[1, 0].plot(hist_r, color="red", alpha=0.7, label="Kırmızı Kanal (R)")
+    axes[1, 0].plot(hist_g, color="green", alpha=0.7, label="Yeşil Kanal (G)")
+    axes[1, 0].plot(hist_b, color="blue", alpha=0.7, label="Mavi Kanal (B)")
+    axes[1, 0].plot(hist_gray, color="black", linestyle="--", linewidth=1.5, label="Gri Seviye (Luma Y)")
+    axes[1, 0].set_title("3. Renk Kanalları ve Gri Histogram Dağılımı", fontsize=11, fontweight="bold")
+    axes[1, 0].set_xlabel("Piksel Yoğunluğu (0 - 255)")
+    axes[1, 0].set_ylabel("Piksel Sayısı")
+    axes[1, 0].set_xlim([0, 255])
+    axes[1, 0].grid(True, linestyle=":", alpha=0.6)
+    axes[1, 0].legend()
+
+    # Boyut Karşılaştırma Grafiği (Bar Chart)
+    categories = ["Piksel Verisi", "Toplam Dosya"]
+    color_bytes = [renkli_meta["total_pixel_data_size"] / (1024*1024), renkli_meta["actual_disk_size"] / (1024*1024)]
+    gray_bytes = [gri_meta["total_pixel_data_size"] / (1024*1024), gri_meta["actual_disk_size"] / (1024*1024)]
+
+    x = np.arange(len(categories))
+    width = 0.35
+    rects1 = axes[1, 1].bar(x - width/2, color_bytes, width, label="Renkli BMP (24-bit / 3 Kanal)", color="#e74c3c")
+    rects2 = axes[1, 1].bar(x + width/2, gray_bytes, width, label="Gri BMP (8-bit / 1 Kanal)", color="#7f8c8d")
+
+    axes[1, 1].set_title("4. Disk Boyutu Kıyaslaması (Megabayt)", fontsize=11, fontweight="bold")
+    axes[1, 1].set_ylabel("Boyut (MB)")
+    axes[1, 1].set_xticks(x)
+    axes[1, 1].set_xticklabels(categories, fontweight="bold")
+    axes[1, 1].legend()
+    axes[1, 1].grid(True, axis="y", linestyle=":", alpha=0.6)
+
+    for rect in rects1:
+        h_val = rect.get_height()
+        axes[1, 1].annotate(f"{h_val:.2f} MB", xy=(rect.get_x() + rect.get_width()/2, h_val),
+                            xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontweight="bold")
+    for rect in rects2:
+        h_val = rect.get_height()
+        axes[1, 1].annotate(f"{h_val:.2f} MB", xy=(rect.get_x() + rect.get_width()/2, h_val),
                             xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontweight="bold")
 
-    # Sağ Alt: Zoom-in 100x100 ve Piksel Değer Dönüşümü
-    # Kırpılan bölgeden ortalama piksel değerleri
-    orig_mean = np.mean(crop_orig, axis=(0, 1))
-    edit_mean = np.mean(crop_edit, axis=(0, 1))
-    
-    # 100x100 Kırpmanın yan yana görseli
-    crop_combined = np.hstack([crop_orig, np.full((100, 10, 3), 255, dtype=np.uint8), crop_edit])
-    axes[1, 1].imshow(cv2.cvtColor(crop_combined, cv2.COLOR_BGR2RGB))
-    axes[1, 1].set_title(f"4. 100x100 Piksel Yakınlaştırma (Sol: Orijinal | Sağ: / 2)\n"
-                         f"Ort. BGR: [{orig_mean[0]:.1f}, {orig_mean[1]:.1f}, {orig_mean[2]:.1f}] -> "
-                         f"[{edit_mean[0]:.1f}, {edit_mean[1]:.1f}, {edit_mean[2]:.1f}]", fontsize=10, fontweight="bold")
-    axes[1, 1].axis("off")
-
-    plt.suptitle(f"Ödev 7.2: 8K BMP (7680x4320, 99.53 MB) Düzenleme ve Hassas Süre Analizi\n"
-                 f"[En Hızlı Düzenleme Süresi: {best_method[1]['time_ms']:.3f} ms | Verim: {best_method[1]['gb_per_sec']:.2f} GB/sn]",
-                 fontsize=13, fontweight="bold")
+    plt.suptitle("Ödev 7.1: 1000x1000 BMP Renkli ve Gri Seviye Boyut / Kanal Analizi", fontsize=14, fontweight="bold")
     plt.tight_layout()
-    gorsel_path = os.path.join(cikti_dir, "8k_karsilastirma_ve_sure.png")
+    gorsel_path = os.path.join(cikti_dir, "karsilastirma_gorsel.png")
     plt.savefig(gorsel_path, dpi=200)
     plt.close()
-    print(f"    - Karşılaştırma görseli kaydedildi: {gorsel_path}")
+    print(f"    - BMP karşılaştırma görseli kaydedildi: {gorsel_path}")
 
-    # Hızlı görsel önizlemeleri için JPG kaydet
-    cv2.imwrite(os.path.join(cikti_dir, "8k_onizleme_orijinal.jpg"), preview_orig, [cv2.IMWRITE_JPEG_QUALITY, 90])
-    cv2.imwrite(os.path.join(cikti_dir, "8k_onizleme_duzenlenmis.jpg"), preview_edit, [cv2.IMWRITE_JPEG_QUALITY, 90])
-    print(f"    - Downsampled önizleme JPG dosyaları kaydedildi.")
+    # 7.2. Renk Uzayları Ayrıştırma Paneli (RGB, HSV, YUV, CIE Lab)
+    print("    - Renk Uzayları ayrıştırma paneli hazırlanıyor (RGB, HSV, YUV, CIE Lab)...")
+    hsv_img = cv2.cvtColor(resim_renkli, cv2.COLOR_BGR2HSV)
+    yuv_img = cv2.cvtColor(resim_renkli, cv2.COLOR_BGR2YUV)
+    lab_img = cv2.cvtColor(resim_renkli, cv2.COLOR_BGR2LAB)
+
+    fig_spaces, axes_spaces = plt.subplots(4, 3, figsize=(14, 16))
+    
+    # 1. Satır: RGB
+    axes_spaces[0, 0].imshow(resim_renkli[:, :, 2], cmap="Reds")
+    axes_spaces[0, 0].set_title("RGB: Kırmızı (Red) Kanalı", fontweight="bold")
+    axes_spaces[0, 0].axis("off")
+    axes_spaces[0, 1].imshow(resim_renkli[:, :, 1], cmap="Greens")
+    axes_spaces[0, 1].set_title("RGB: Yeşil (Green) Kanalı", fontweight="bold")
+    axes_spaces[0, 1].axis("off")
+    axes_spaces[0, 2].imshow(resim_renkli[:, :, 0], cmap="Blues")
+    axes_spaces[0, 2].set_title("RGB: Mavi (Blue) Kanalı", fontweight="bold")
+    axes_spaces[0, 2].axis("off")
+
+    # 2. Satır: HSV
+    axes_spaces[1, 0].imshow(hsv_img[:, :, 0], cmap="hsv")
+    axes_spaces[1, 0].set_title("HSV: Ton (Hue - 0-180°)", fontweight="bold")
+    axes_spaces[1, 0].axis("off")
+    axes_spaces[1, 1].imshow(hsv_img[:, :, 1], cmap="gray")
+    axes_spaces[1, 1].set_title("HSV: Doygunluk (Saturation - 0-255)", fontweight="bold")
+    axes_spaces[1, 1].axis("off")
+    axes_spaces[1, 2].imshow(hsv_img[:, :, 2], cmap="gray")
+    axes_spaces[1, 2].set_title("HSV: Parlaklık (Value - 0-255)", fontweight="bold")
+    axes_spaces[1, 2].axis("off")
+
+    # 3. Satır: YUV
+    axes_spaces[2, 0].imshow(yuv_img[:, :, 0], cmap="gray")
+    axes_spaces[2, 0].set_title("YUV: Aydınlık (Luma Y)", fontweight="bold")
+    axes_spaces[2, 0].axis("off")
+    axes_spaces[2, 1].imshow(yuv_img[:, :, 1], cmap="coolwarm")
+    axes_spaces[2, 1].set_title("YUV: Krominans U (Mavi Farkı)", fontweight="bold")
+    axes_spaces[2, 1].axis("off")
+    axes_spaces[2, 2].imshow(yuv_img[:, :, 2], cmap="coolwarm")
+    axes_spaces[2, 2].set_title("YUV: Krominans V (Kırmızı Farkı)", fontweight="bold")
+    axes_spaces[2, 2].axis("off")
+
+    # 4. Satır: CIE Lab
+    axes_spaces[3, 0].imshow(lab_img[:, :, 0], cmap="gray")
+    axes_spaces[3, 0].set_title("CIE Lab: Algısal Aydınlık (L*)", fontweight="bold")
+    axes_spaces[3, 0].axis("off")
+    axes_spaces[3, 1].imshow(lab_img[:, :, 1], cmap="RdYlGn_r")
+    axes_spaces[3, 1].set_title("CIE Lab: a* Kanalı (Yeşil <-> Kırmızı)", fontweight="bold")
+    axes_spaces[3, 1].axis("off")
+    axes_spaces[3, 2].imshow(lab_img[:, :, 2], cmap="YlGnBu_r")
+    axes_spaces[3, 2].set_title("CIE Lab: b* Kanalı (Mavi <-> Sarı)", fontweight="bold")
+    axes_spaces[3, 2].axis("off")
+
+    plt.suptitle("Görüntü İşlemede Renk Uzaylarının Kanallarına Ayrıştırılması", fontsize=15, fontweight="bold")
+    plt.tight_layout()
+    uzaylar_gorsel_path = os.path.join(cikti_dir, "renk_uzaylari_karsilastirma.png")
+    plt.savefig(uzaylar_gorsel_path, dpi=200)
+    plt.close()
+    print(f"    - Renk uzayları görsel paneli kaydedildi: {uzaylar_gorsel_path}")
 
     print("\n================================================================================")
-    print(f"   ÖDEV 7.2 BAŞARIYLA TAMAMLANDI! (Düzenleme Süresi: {best_method[1]['time_ms']:.3f} ms)")
+    print("   ÖDEV 7.1 BAŞARIYLA TAMAMLANDI!")
     print("================================================================================")
 
 
