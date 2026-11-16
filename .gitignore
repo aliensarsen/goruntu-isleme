@@ -6,3 +6,7 @@ color_convert
 __pycache__/
 *.pyc
 .venv/
+
+# Büyük boyutlu ham 8K BMP dosyaları (>90 MB) - GitHub 100MB sınırını aşmamak için
+*8k*.bmp
+*8K*.bmp

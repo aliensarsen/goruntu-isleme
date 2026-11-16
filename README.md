@@ -89,6 +89,8 @@
 | Ödev Kodu | Konu | Çıktılar / Rapor | Bağlantı |
 | :---: | :--- | :--- | :---: |
 | **7.1** | **Renk Uzayları Araştırması ve 1000x1000 BMP Boyut / Kanal Analizi**<br>• RGB, HSV, YUV, CIE L\*a\*b\*, Grayscale, CMYK kuramsal ve pratik karşılaştırması<br>• 24-bit $1000 \times 1000$ renkli BMP $\rightarrow$ 8-bit gri seviye BMP dönüşümü<br>• DIB/BMP başlıkları, 1024 baytlık renk paleti ve kanal sayısı kıyaslaması ($3{,}000{,}054$ vs $1{,}001{,}078$ bayt) | `gri_1000x1000.bmp`<br>`boyut_analizi_raporu.txt`<br>`karsilastirma_gorsel.png`<br>`renk_uzaylari_karsilastirma.png` | [📂 İncele](Hafta_7/7.1/) |
+| **7.2** | **8K Çözünürlükte 3-Kanallı BMP Düzenleme ve Hassas Süre Ölçümü**<br>• 8K UHD ($7680 \times 4320 \times 3$) 24-bit BMP görüntüsü ($99{,}532{,}854$ bayt)<br>• OpenCV ile açma; piksel değerlerini 2'ye bölme (`img // 2`, `>> 1`, in-place, `cv2.divide`, threading)<br>• Dosya açma/kaydetme hariç yalnız düzenleme süresi (8.67 ms / 10.69 GB/sn) | `8k_duzenlenmis.bmp`<br>`sure_ve_performans_raporu.txt`<br>`8k_karsilastirma_ve_sure.png`<br>`8k_onizleme_*.jpg` | [📂 İncele](Hafta_7/7.2/) |
+| **7.3** | **Renk Uzayları Dönüşümü (HSV, HSI, YUV, CIE Lab) ve BMP Kaydetme**<br>• RGB BMP görüntüsünün HSV, HSI, YUV, CIE L\*a\*b\* uzaylarına dönüştürülmesi<br>• Sıfırdan Gonzalez & Woods formülüyle HSI fonksiyonu ($I = (R+G+B)/3$)<br>• Her bir uzayın 3-kanallı 24-bit BMP olarak kaydedilmesi ve 5x4 ızgara paneli | `resim_hsv.bmp`<br>`resim_hsi.bmp`<br>`resim_yuv.bmp`<br>`resim_cielab.bmp`<br>`renk_uzaylari_paneli.png`<br>`donusum_raporu.txt` | [📂 İncele](Hafta_7/7.3/) |
 
 ---
 

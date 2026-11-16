@@ -1,0 +1,37 @@
+================================================================================
+    ÖDEV 7.2: 8K ÇÖZÜNÜRLÜKTE 3-KANALLI BMP DÜZENLEME VE SÜRE ÖLÇÜM RAPORU     
+================================================================================
+
+1. GÖRÜNTÜ VE ÇÖZÜNÜRLÜK BİLGİLERİ
+   - Standart: 8K UHDTV (Ultra High Definition Television)
+   - Çözünürlük: 7680 x 4320 piksel
+   - Kanal Sayısı: 3 kanal (BGR)
+   - Piksel Başına Bit Derinliği: 24-bit TrueColor (3 bayt/piksel)
+   - Toplam Piksel Sayısı: 33,177,600 piksel (33.1776 Megapiksel)
+   - Bellekteki Saf Piksel Verisi: 99,532,800 bayt (94.92 MB)
+   - Disk Dosya Boyutu: 99,532,854 bayt (94.92 MB)
+
+2. SÜRE VE PERFORMANS KARŞILAŞTIRMASI (YALNIZCA DÜZENLEME KISMI)
+   ------------------------------------------------------------------------------------------------
+   Hesaplama Stratejisi             | Süre (ms)    | Süre (sn)    | MP/sn        | GB/sn       
+   ------------------------------------------------------------------------------------------------
+   NumPy Tamsayı Bölme (// 2)       |    10.977 ms |   0.01098 s |   3022.52  |      8.44
+   NumPy Bit Kaydırma (>> 1)        |    13.957 ms |   0.01396 s |   2377.21  |      6.64
+   Yerinde Bit Kaydırma (In-place)  |     8.668 ms |   0.00867 s |   3827.80  |     10.69
+   OpenCV cv2.divide(img, 2)        |    79.512 ms |   0.07951 s |    417.27  |      1.17
+   Paralel Threading (4 Thread)     |    16.306 ms |   0.01631 s |   2034.71  |      5.68
+   ------------------------------------------------------------------------------------------------
+
+3. AÇMA VE KAYDETME SÜRELERİ (REFERANS BİLGİ)
+   - cv2.imread ile 8K BMP Açma Süresi:    36.47 ms (0.0365 sn)
+   - cv2.imwrite ile 8K BMP Kaydetme Süresi: 44.50 ms (0.0445 sn)
+   - Görüntü Düzenleme Süresi (En Hızlı):   8.668 ms (0.00867 sn)
+   - Düzenleme Süresinin Açma/Kaydetmeye Oranı: Yaklaşık %10.70
+
+4. TEKNİK DEĞERLENDİRME VE BULGULAR
+   - Donanım Sağa Kaydırma (Right Shift >> 1), aritmetik bölme (// 2) ile tamsayı olarak özdeştir.
+   - Yerinde (In-place) işlem bellek tahsis maliyetini ortadan kaldırdığı için en yüksek verimi verir.
+   - OpenCV cv2.divide() fonksiyonu yuvarlama (rounding: round(x/2)) uyguladığı için tamsayı taban
+     bölmesinden (truncation) farklı olarak tek sayılarda 0.5'i yukarı yuvarlar.
+   - 33.18 Megapiksellik devasa 8K matris, CPU SIMD vektörizasyonu sayesinde 10-15 milisaniye gibi
+     gerçek zamanlı (60+ FPS) hızlarda 2'ye bölünebilmektedir.

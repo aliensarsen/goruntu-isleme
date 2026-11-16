@@ -1,0 +1,70 @@
+================================================================================
+    ÖDEV 7.3: RENK UZAYI DÖNÜŞÜMLERİ (HSV, HSI, YUV, CIE LAB) RAPORU            
+================================================================================
+
+Tarih: 16 Kasım 2026
+Girdi Dosyası: /Users/aliensarsen/goruntu_isleme/Hafta_7/girdi/renkli_1000x1000.bmp (1000x1000, 3 Kanal BGR, 3,000,054 bayt)
+
+1. ÜRETİLEN BMP DOSYALARI VE BOYUTLARI
+   -----------------------------------------------------------------------------
+   Renk Uzayı      | Dosya Adı            | Disk Boyutu        | Durum     
+   -----------------------------------------------------------------------------
+   HSV             | resim_hsv.bmp        | 3,000,054 bayt (2.86 MB) | Başarılı
+   HSI             | resim_hsi.bmp        | 3,000,054 bayt (2.86 MB) | Başarılı
+   YUV             | resim_yuv.bmp        | 3,000,054 bayt (2.86 MB) | Başarılı
+   CIE Lab         | resim_cielab.bmp     | 3,000,054 bayt (2.86 MB) | Başarılı
+   -----------------------------------------------------------------------------
+
+2. KANAL DÜZEYİNDE İSTATİSTİKSEL ANALİZ (Min, Max, Ortalama, Std. Sapma)
+
+   [*] HSV Uzayı Kanalları:
+       - Kanal 0 (Ton (Hue: 0-180)):
+         Min:   0 | Max: 179 | Ort:  54.80 | Std:  50.47
+       - Kanal 1 (Doygunluk (Saturation: 0-255)):
+         Min:   0 | Max: 255 | Ort: 132.04 | Std:  89.26
+       - Kanal 2 (Değer (Value: 0-255)):
+         Min:   0 | Max: 255 | Ort: 192.99 | Std:  70.68
+
+   [*] HSI Uzayı Kanalları:
+       - Kanal 0 (Ton (Hue: 0-255)):
+         Min:   0 | Max: 254 | Ort:  87.32 | Std:  64.39
+       - Kanal 1 (Doygunluk (Saturation: 0-255)):
+         Min:   0 | Max: 255 | Ort: 109.38 | Std:  88.20
+       - Kanal 2 (Şiddet (Intensity: 0-255)):
+         Min:   0 | Max: 255 | Ort: 139.60 | Std:  60.51
+
+   [*] YUV Uzayı Kanalları:
+       - Kanal 0 (Aydınlık (Luma Y: 0-255)):
+         Min:   0 | Max: 255 | Ort: 140.32 | Std:  63.67
+       - Kanal 1 (Krominans U (Mavi Farkı)):
+         Min:  17 | Max: 239 | Ort: 126.00 | Std:  41.10
+       - Kanal 2 (Krominans V (Kırmızı Farkı)):
+         Min:   0 | Max: 255 | Ort: 129.96 | Std:  53.57
+
+   [*] CIE Lab Uzayı Kanalları:
+       - Kanal 0 (Algısal Parlaklık (L*: 0-255)):
+         Min:   0 | Max: 255 | Ort: 155.70 | Std:  64.10
+       - Kanal 1 (Kromatik a* (Yeşil <-> Kırmızı)):
+         Min:  42 | Max: 226 | Ort: 135.35 | Std:  32.45
+       - Kanal 2 (Kromatik b* (Mavi <-> Sarı)):
+         Min:  20 | Max: 223 | Ort: 132.78 | Std:  42.52
+
+3. HSV İLE HSI ARASINDAKİ TEMEL FARKLAR
+   - HSV'de Değer (Value): V = max(R, G, B) formülüyle hesaplanır. Üç renkten en yükseğini alır.
+   - HSI'de Şiddet (Intensity): I = (R + G + B) / 3 formülüyle hesaplanır. Ortalama enerjidir.
+   - Doygunluk Tanımları:
+     * S_HSV = (V - min(R, G, B)) / V
+     * S_HSI = 1 - (min(R, G, B) / I)
+   - Bu farktan ötürü HSV ve HSI görsel olarak benzer görünse de piksel değerleri sayısal olarak
+     farklıdır ve HSI insan algısındaki ışık enerjisini (luma) daha dengeli modeller.
+
+4. KURAMSAL DÖNÜŞÜM FORMÜLLERİ
+   - BGR -> YUV:
+     Y =  0.299*R + 0.587*G + 0.114*B
+     U = -0.147*R - 0.289*G + 0.436*B + 128 = 0.492*(B - Y) + 128
+     V =  0.615*R - 0.515*G - 0.100*B + 128 = 0.877*(R - Y) + 128
+
+   - BGR -> CIE L*a*b*:
+     Önce BGR -> CIE XYZ standart beyaz nokta D65 referansıyla dönüştürülür;
+     Ardından L* = 116 * f(Y/Yn) - 16, a* = 500 * [f(X/Xn) - f(Y/Yn)], b* = 200 * [f(Y/Yn) - f(Z/Zn)]
+     bağıntılarıyla algısal düzgün küreye izdüşürülür.
