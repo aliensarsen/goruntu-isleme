@@ -1,0 +1,36 @@
+================================================================================
+       ÖDEV 7.1: 1000x1000 BMP RENKLİ VE GRİ SEVİYE BOYUT ANALİZ RAPORU         
+================================================================================
+
+Tarih: 16 Kasım 2026
+
+1. GÖRÜNTÜ VE ÇÖZÜNÜRLÜK BİLGİLERİ
+   - Görüntü Boyutları: 1000 x 1000
+   - Toplam Piksel Sayısı: 1,000,000 piksel
+
+2. DOSYA VE BAŞLIK YAPISI KARŞILAŞTIRMASI
+   -----------------------------------------------------------------------------
+   Parametre                      | Renkli BMP (24-bit)  | Gri BMP (8-bit)     
+   -----------------------------------------------------------------------------
+   Kanal Sayısı                   | 3 (BGR)                | 1 (Gri)
+   Bit Derinliği                  | 24 bit/piksel          | 8 bit/piksel
+   BITMAPFILEHEADER               | 14 bayt              | 14 bayt
+   BITMAPINFOHEADER               | 40 bayt              | 40 bayt
+   Renk Paleti Tablosu            | 0 bayt (Yok)         | 1024 bayt (256 x 4 bayt)
+   Veri Başlangıç Ofseti          | 54 bayt              | 1078 bayt
+   Satır Hizalama (Padding)       | 0 bayt               | 0 bayt
+   Piksel Matrisi Boyutu          | 3,000,000 bayt       | 1,000,000 bayt
+   Toplam Disk Dosya Boyutu       | 3,000,054 bayt       | 1,001,078 bayt
+   Disk Boyutu (KB)               | 2929.74 KB            | 977.62 KB
+   Disk Boyutu (MB)               | 2.8611 MB          | 0.9547 MB
+   -----------------------------------------------------------------------------
+
+3. MATEMATİKSEL İSPAT VE SONUÇ DEĞERLENDİRMESİ
+   - Renkli BMP Dosya Boyutu Formülü:
+     Boyut = 54 (Başlık) + (1000 x 1000 x 3 bayt piksel) = 3,000,054 bayt (~2.86 MB)
+   - Gri BMP Dosya Boyutu Formülü:
+     Boyut = 54 (Başlık) + 1024 (Palet) + (1000 x 1000 x 1 bayt piksel) = 1,001,078 bayt (~0.95 MB)
+   - Boyut Oranı:
+     3,000,054 / 1,001,078 = 2.9968 (Kanal sayısı 3'ten 1'e düştüğü için yaklaşık 3 kat azalma)
+   - 3.0'dan küçük sapmanın nedeni: 8-bit formatında piksel indekslerini renk karşılıklarına
+     bağlayan 1024 baytlık renk paleti (Color Palette / RGBQUAD[256]) tablosunun bulunmasıdır.

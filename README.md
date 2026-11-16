@@ -84,6 +84,14 @@
 
 ---
 
+## 📂 Hafta 7: Renk Uzayları, Görüntü Formatları ve Dönüşüm Analizi
+
+| Ödev Kodu | Konu | Çıktılar / Rapor | Bağlantı |
+| :---: | :--- | :--- | :---: |
+| **7.1** | **Renk Uzayları Araştırması ve 1000x1000 BMP Boyut / Kanal Analizi**<br>• RGB, HSV, YUV, CIE L\*a\*b\*, Grayscale, CMYK kuramsal ve pratik karşılaştırması<br>• 24-bit $1000 \times 1000$ renkli BMP $\rightarrow$ 8-bit gri seviye BMP dönüşümü<br>• DIB/BMP başlıkları, 1024 baytlık renk paleti ve kanal sayısı kıyaslaması ($3{,}000{,}054$ vs $1{,}001{,}078$ bayt) | `gri_1000x1000.bmp`<br>`boyut_analizi_raporu.txt`<br>`karsilastirma_gorsel.png`<br>`renk_uzaylari_karsilastirma.png` | [📂 İncele](Hafta_7/7.1/) |
+
+---
+
 ## 🛠️ Genel Gereksinimler ve Çalıştırma
 ```bash
 pip install opencv-python numpy matplotlib
