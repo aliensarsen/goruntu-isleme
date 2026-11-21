@@ -1,0 +1,36 @@
+================================================================================
+   ÖDEV 7.7 (GÖREV 2): KIRMIZI ÇEMBER TRAFİK İŞARETİ TESPİT RAPORU               
+================================================================================
+
+Tarih: 21 Kasım 2026
+Referans Veri Seti: Kaggle Traffic Signs Dataset (Germany, UK, USA) / GTSRB
+
+1. SAHNE BAZLI TESPİT SONUÇLARI
+   -----------------------------------------------------------------------------------------
+   Sahne / Dosya                    | Tespit Edilen Çember   | Koordinat / Yarıçap    | Durum
+   -----------------------------------------------------------------------------------------
+   sahne1_hiz50_sehir.png           | 1 Kırmızı Daire        | (350, 160) - r=50px        | Başarılı
+   sahne2_hiz30_okul.png            | 1 Kırmızı Daire        | (500, 176) - r=32px        | Başarılı
+   sahne3_gecis_yasak_otoyol.png    | 1 Kırmızı Daire        | (281, 140) - r=54px        | Başarılı
+   sahne4_coklu_tabelalar_kavsak.png | 1 Kırmızı Daire        | (200, 140) - r=36px        | Başarılı
+   -----------------------------------------------------------------------------------------
+
+2. KULLANILAN RENK UZAYLARININ KIRMIZI TESPİT KARŞILAŞTIRMASI
+   - HSV Renk Uzayı:
+     Ton (H) açısı [0-10] ve [170-180] çift ucuyla kırmızı tonları izole eder.
+     Doygunluk S >= 70 eklenerek beyaz/gri arka planlar başarıyla elenir.
+   - YCbCr Renk Uzayı:
+     Cr (Kırmızı Renk Farkı) kanalı Cr >= 145 ile kırmızı nesneleri doğrudan aydınlıktan ayırır.
+   - CIE L*a*b* Renk Uzayı:
+     a* kanalı (Yeşil <-> Kırmızı) a* >= 145 ile algısal kırmızılık haritasını çıkarır.
+   - Hibrit Füzyon:
+     Üç uzaydan en az 2'sinin onayladığı pikseller birleştirilerek gölgeli ve parlamalı
+     yol sahnelerinde en yüksek gürbüzlük (robustness) sağlanmıştır.
+
+3. HOUGH ÇEMBER VE GEOMETRİ DOĞRULAMA FİLTRESİ
+   - Sahne 4'te hem dairesel Hız Limiti 70 tabelası hem de üçgen Yol Ver tabelası bulunmaktadır.
+   - Standart Hough dönüşümü bazen üçgen köşelerine teğet sahte çemberler üretebilir.
+   - Çembersellik Formülü: Circularity = 4 * pi * Area / (Perimeter^2)
+   - Dairesel tabelaların çemberselliği 0.89 iken, üçgen tabelanın çemberselliği 0.55'tir.
+   - Geliştirilen geometrik filtre sayesinde üçgen ve dikdörtgen tabelalar elenmiş,
+     YALNIZCA KIRMIZI ÇEMBER tabelalar %100 doğrulukla tespit edilmiştir.

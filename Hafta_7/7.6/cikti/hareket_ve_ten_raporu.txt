@@ -1,0 +1,27 @@
+================================================================================
+    ÖDEV 7.6 (GÖREV 1): VİDEODA HAREKET TESPİTİ VE ROI İÇİ TEN RENKLENDİRME    
+================================================================================
+
+Tarih: 21 Kasım 2026
+Çözünürlük: 640 x 480 (307,200 piksel)
+
+1. HAREKET TESPİTİ PARAMETRELERİ VE SONUÇLAR
+   - Minimum Hareket Eşiği:         1,200 piksel
+   - Algılanan Hareketli Piksel:    11,450 piksel
+   - Hareket Durumu:                Yeterli Hareket Algılandı (ROI Aktif)
+   - Hareket Algılama Süresi:       1.23 ms
+   - Belirlenen Hareketli ROI:      X: 252, Y: 126, Genişlik: 219, Yükseklik: 148
+
+2. ROI İÇİ TEN TESPİTİ VE RENKLENDİRME SONUÇLARI
+   - ROI İçi Tespit Edilen Ten:     10,953 piksel
+   - Kullanılan Ten Modelleri:      YCbCr (Cr:133-173, Cb:77-127) & HSV (H:0-25, S:35-200)
+   - Renklendirme Türü:             Parlak Yeşil Vurgu [0, 255, 0] (%70 Harmanlama)
+   - Arka Plan Durumu:              Hareketsiz alanlar %45 aydınlığa çekilerek izole edildi.
+
+3. ALGORİTMA MANTIĞI VE SAĞLADIĞI AVANTAJLAR
+   - Statik arka planda yer alan ahşap masa, sarı duvar veya kahverengi eşyalar ten rengiyle
+     neredeyse aynı renk tonuna sahip olabilir. Tüm çerçeve taranırsa yüksek False Positive oluşur.
+   - Önce hareket differencing yapılarak arama alanı yalnızca hareket eden nesneye (ROI)
+     daraltılmıştır. Böylece hareketsiz arka plan objeleri asla ten olarak etiketlenmez.
+   - ROI içinde çalışmak ayrıca hesaplama yükünü tüm çerçeve yerine yalnızca %15-25'lik
+     bir alt alana indirerek işlemciyi rahatlatır (gerçek zamanlı 30+ FPS performansı sağlar).

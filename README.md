@@ -93,6 +93,8 @@
 | **7.3** | **Görev 3: 8K BMP Düzenleme ve Hassas Süre Ölçümü**<br>• 8K UHD ($7680 \times 4320 \times 3$) 24-bit BMP görüntüsü ($99{,}532{,}854$ bayt)<br>• OpenCV ile açma; piksel değerlerini 2'ye bölme (`img // 2`, `>> 1`, in-place, `cv2.divide`, threading)<br>• Dosya açma/kaydetme hariç yalnız düzenleme süresi (8.67 ms / 10.69 GB/sn) | `8k_duzenlenmis.bmp`<br>`sure_ve_performans_raporu.txt`<br>`8k_karsilastirma_ve_sure.png`<br>`8k_onizleme_*.jpg` | [📂 İncele](Hafta_7/7.3/) |
 | **7.4** | **Görev 4: Renk Uzayları Dönüşümü (HSV, HSI, YUV, CIE Lab) ve BMP Kaydetme**<br>• RGB BMP görüntüsünün HSV, HSI, YUV, CIE L\*a\*b\* uzaylarına dönüştürülmesi<br>• Sıfırdan Gonzalez & Woods formülüyle HSI fonksiyonu ($I = (R+G+B)/3$)<br>• Her bir uzayın 3-kanallı 24-bit BMP olarak kaydedilmesi ve 5x4 ızgara paneli | `resim_hsv.bmp`<br>`resim_hsi.bmp`<br>`resim_yuv.bmp`<br>`resim_cielab.bmp`<br>`renk_uzaylari_paneli.png`<br>`donusum_raporu.txt` | [📂 İncele](Hafta_7/7.4/) |
 | **7.5** | **Görev 5: Ten Rengi Tespiti (RGB, YCbCr, HSV) ve Ten Dışı Tam Kırmızı Gösterme**<br>• 21 farklı etnik yüze sahip görüntüde ten rengi segmentasyonu<br>• RGB (Peer et al.), YCbCr (Chai & Ngan) ve HSV kuralları<br>• Ten olmayan tüm piksellerin tam kırmızı `[0, 0, 255]` yapılması ve karşılaştırmalı paneli | `ten_rgb.png`<br>`ten_ycbcr.png`<br>`ten_hsv.png`<br>`karsilastirma_ten_paneli.png`<br>`ten_maskeleri_paneli.png`<br>`ten_tespiti_raporu.txt` | [📂 İncele](Hafta_7/7.5/) |
+| **7.6** | **Görev 6: Video/Webcam Hareketli Bölge Tespiti (ROI) ve Ten Rengi Renklendirme**<br>• Video akışı / kamera çerçeve farkı ($|G_t - G_{t-1}| > 20$, adaptif hareket eşiği $>1200\text{ px}$)<br>• Hareketli ROI tespiti ve arka planı karartma (%45 aydınlık)<br>• Sadece hareketli ROI içinde YCbCr & HSV ten tespiti ve yarı saydam yeşil renklendirme | `hareket_ve_ten_tespiti.png`<br>`hareket_ve_ten_paneli.png`<br>`hareket_ve_ten_raporu.txt` | [📂 İncele](Hafta_7/7.6/) |
+| **7.7** | **Görev 7: Trafik İşaretlerinde Kırmızı Çember Tespiti (Kaggle GTSRB Veri Seti)**<br>• Kaggle GTSRB trafik işaretleri kıyaslaması (Hız 50, 30, Geçiş Yasağı, Üçgen, Dikdörtgen)<br>• Çoklu renk uzayı kırmızı segmentasyonu (HSV, YCbCr, CIE L\*a\*b\*) hibrit füzyonu<br>• `cv2.HoughCircles` çember tespiti ve dairesellik ($\ge 0.70$) geometrik doğrulaması | `trafik_tabelalari_tespit_paneli.png`<br>`renk_uzaylari_kirmizi_maske_paneli.png`<br>`hough_tespit_raporu.txt` | [📂 İncele](Hafta_7/7.7/) |
 
 ---
 
@@ -102,10 +104,7 @@ pip install opencv-python numpy matplotlib
 ```
 Herhangi bir ödevi çalıştırmak için ilgili klasöre gidip `main.py` dosyasını çalıştırmanız yeterlidir:
 ```bash
-cd Hafta_5/5.1 && python3 main.py
-cd Hafta_5/5.2 && python3 main.py
-cd Hafta_5/5.3 && python3 main.py
-cd Hafta_5/5.4 && python3 main.py
-cd Hafta_5/5.5 && python3 main.py
+cd Hafta_7/7.6 && python3 main.py
+cd Hafta_7/7.7 && python3 main.py
 ```
 *(Tüm betikler resim parametresi verilmediğinde sentetik renkli bir görsel üretip otomatik olarak testleri tamamlar).*
